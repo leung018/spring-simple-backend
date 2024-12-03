@@ -68,4 +68,22 @@ class OrderServiceTest {
             () -> orderService.createOrder(user.getId(), purchaseItems));
     assertEquals("Product: non_existing_product_id does not exist", exception.getMessage());
   }
+
+  @Test
+  void shouldRejectCreateOrderWithInsufficientBalance() {
+    User user = userBuilder().balance(9).build();
+    userRepository.save(user);
+
+    Product product = productBuilder().price(5).build();
+    productRepository.save(product);
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem(product.getId(), 2);
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> orderService.createOrder(user.getId(), purchaseItems));
+    assertEquals("Insufficient balance", exception.getMessage());
+  }
 }

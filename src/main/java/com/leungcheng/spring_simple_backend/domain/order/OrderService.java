@@ -1,5 +1,6 @@
 package com.leungcheng.spring_simple_backend.domain.order;
 
+import com.google.common.collect.ImmutableMap;
 import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
@@ -27,18 +28,20 @@ public class OrderService {
             .findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
 
-    purchaseItems
-        .getProductIdToQuantity()
-        .forEach(
-            (productId, quantity) -> {
-              Product product =
-                  productRepository
-                      .findById(productId)
-                      .orElseThrow(
-                          () ->
-                              new IllegalArgumentException(
-                                  "Product: " + productId + " does not exist"));
-            });
+    double totalCost = 0;
+    ImmutableMap<String, Integer> productIdToQuantity = purchaseItems.getProductIdToQuantity();
+    for (String productId : productIdToQuantity.keySet()) {
+      Product product =
+          productRepository
+              .findById(productId)
+              .orElseThrow(
+                  () -> new IllegalArgumentException("Product: " + productId + " does not exist"));
+      totalCost += product.getPrice() * productIdToQuantity.get(productId);
+    }
+
+    if (user.getBalance() < totalCost) {
+      throw new IllegalArgumentException("Insufficient balance");
+    }
 
     throw new UnsupportedOperationException("Not implemented");
   }
