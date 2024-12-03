@@ -74,7 +74,7 @@ class OrderServiceTest {
     User user = userBuilder().balance(9).build();
     userRepository.save(user);
 
-    Product product = productBuilder().price(5).build();
+    Product product = productBuilder().price(5).quantity(999).build();
     productRepository.save(product);
 
     PurchaseItems purchaseItems = new PurchaseItems();
