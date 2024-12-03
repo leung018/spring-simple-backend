@@ -1,5 +1,6 @@
 package com.leungcheng.spring_simple_backend.domain.order;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.leungcheng.spring_simple_backend.domain.Product;
@@ -46,9 +47,11 @@ class OrderServiceTest {
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem(product.getId(), 1);
 
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> orderService.createOrder("non_existing_user_id", purchaseItems));
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> orderService.createOrder("non_existing_user_id", purchaseItems));
+    assertEquals("User does not exist", exception.getMessage());
   }
 
   @Test
@@ -59,8 +62,10 @@ class OrderServiceTest {
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem("non_existing_product_id", 1);
 
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> orderService.createOrder(user.getId(), purchaseItems));
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> orderService.createOrder(user.getId(), purchaseItems));
+    assertEquals("Product: non_existing_product_id does not exist", exception.getMessage());
   }
 }

@@ -34,7 +34,10 @@ public class OrderService {
               Product product =
                   productRepository
                       .findById(productId)
-                      .orElseThrow(() -> new IllegalArgumentException("Product does not exist"));
+                      .orElseThrow(
+                          () ->
+                              new IllegalArgumentException(
+                                  "Product: " + productId + " does not exist"));
             });
 
     throw new UnsupportedOperationException("Not implemented");
