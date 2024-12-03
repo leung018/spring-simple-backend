@@ -36,6 +36,12 @@ public class OrderService {
               .findById(productId)
               .orElseThrow(
                   () -> new IllegalArgumentException("Product: " + productId + " does not exist"));
+
+      int purchaseQuantity = productIdToQuantity.get(productId);
+      if (purchaseQuantity > product.getQuantity()) {
+        throw new IllegalArgumentException("Insufficient stock for product: " + productId);
+      }
+
       totalCost += product.getPrice() * productIdToQuantity.get(productId);
     }
 

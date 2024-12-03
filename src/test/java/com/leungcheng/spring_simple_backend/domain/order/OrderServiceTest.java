@@ -86,4 +86,22 @@ class OrderServiceTest {
             () -> orderService.createOrder(user.getId(), purchaseItems));
     assertEquals("Insufficient balance", exception.getMessage());
   }
+
+  @Test
+  void shouldRejectOrderWithInsufficientProductQuantity() {
+    User user = userBuilder().balance(999).build();
+    userRepository.save(user);
+
+    Product product = productBuilder().quantity(1).price(1).build();
+    productRepository.save(product);
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem(product.getId(), 2);
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> orderService.createOrder(user.getId(), purchaseItems));
+    assertEquals("Insufficient stock for product: " + product.getId(), exception.getMessage());
+  }
 }
