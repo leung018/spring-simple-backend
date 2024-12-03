@@ -2,7 +2,9 @@ package com.leungcheng.spring_simple_backend.domain.order;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
+import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,13 +30,37 @@ class OrderServiceTest {
     orderService = new OrderService(userRepository, productRepository, orderRepository);
   }
 
+  private static Product.Builder productBuilder() {
+    return new Product.Builder().name("Default Product").price(20).quantity(10);
+  }
+
+  private static User.Builder userBuilder() {
+    return new User.Builder().username("user01").password("password").balance(100);
+  }
+
   @Test
   void shouldRejectCreateOrderWithNonExistingUser() {
+    Product product = productBuilder().build();
+    productRepository.save(product);
+
     PurchaseItems purchaseItems = new PurchaseItems();
-    purchaseItems.setPurchaseItem("product_id", 1);
+    purchaseItems.setPurchaseItem(product.getId(), 1);
 
     assertThrows(
         IllegalArgumentException.class,
         () -> orderService.createOrder("non_existing_user_id", purchaseItems));
+  }
+
+  @Test
+  void shouldRejectCreateOrderWithNonExistingProduct() {
+    User user = userBuilder().build();
+    userRepository.save(user);
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem("non_existing_product_id", 1);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> orderService.createOrder(user.getId(), purchaseItems));
   }
 }

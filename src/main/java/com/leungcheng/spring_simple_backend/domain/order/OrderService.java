@@ -1,5 +1,6 @@
 package com.leungcheng.spring_simple_backend.domain.order;
 
+import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
@@ -25,6 +26,16 @@ public class OrderService {
         userRepository
             .findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+
+    purchaseItems
+        .getProductIdToQuantity()
+        .forEach(
+            (productId, quantity) -> {
+              Product product =
+                  productRepository
+                      .findById(productId)
+                      .orElseThrow(() -> new IllegalArgumentException("Product does not exist"));
+            });
 
     throw new UnsupportedOperationException("Not implemented");
   }
