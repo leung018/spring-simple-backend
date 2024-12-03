@@ -42,7 +42,7 @@ public class OrderService {
         throw new IllegalArgumentException("Insufficient stock for product: " + productId);
       }
 
-      totalCost += product.getPrice() * productIdToQuantity.get(productId);
+      totalCost += product.getPrice() * purchaseQuantity;
     }
 
     if (user.getBalance() < totalCost) {
