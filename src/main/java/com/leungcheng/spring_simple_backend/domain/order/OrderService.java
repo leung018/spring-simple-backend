@@ -6,6 +6,8 @@ import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
@@ -22,6 +24,7 @@ public class OrderService {
     this.orderRepository = orderRepository;
   }
 
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public Order createOrder(String userId, PurchaseItems purchaseItems) {
     User user =
         userRepository
