@@ -22,6 +22,12 @@ public class User implements UserDetails {
     private String username;
     private String password;
     private double balance;
+    private String id = java.util.UUID.randomUUID().toString();
+
+    private Builder id(String id) {
+      this.id = id;
+      return this;
+    }
 
     public Builder username(String username) {
       this.username = username;
@@ -40,6 +46,8 @@ public class User implements UserDetails {
 
     public User build() {
       User user = new User();
+
+      user.id = id;
       user.username = username;
       user.password = password;
       user.balance = balance;
@@ -51,9 +59,13 @@ public class User implements UserDetails {
 
   private User() {}
 
+  public User.Builder toBuilder() {
+    return new User.Builder().username(username).password(password).balance(balance).id(id);
+  }
+
   @Id
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  private String id = java.util.UUID.randomUUID().toString();
+  private String id;
 
   @Column(unique = true)
   @NotBlank

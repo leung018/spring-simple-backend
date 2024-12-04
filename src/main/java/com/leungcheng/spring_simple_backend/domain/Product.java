@@ -16,6 +16,12 @@ public class Product {
     private double price;
     private int quantity;
     private String userId;
+    private String id = java.util.UUID.randomUUID().toString();
+
+    private Builder id(String id) {
+      this.id = id;
+      return this;
+    }
 
     public Builder name(String name) {
       this.name = name;
@@ -39,6 +45,7 @@ public class Product {
 
     public Product build() {
       Product product = new Product();
+      product.id = id;
       product.name = name;
       product.price = price;
       product.quantity = quantity;
@@ -51,9 +58,13 @@ public class Product {
 
   private Product() {}
 
+  public Builder toBuilder() {
+    return new Builder().name(name).price(price).quantity(quantity).userId(userId).id(id);
+  }
+
   @Id
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  private String id = java.util.UUID.randomUUID().toString();
+  private String id;
 
   private String userId;
 

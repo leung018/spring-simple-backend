@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 class ProductTest {
 
   private static Product.Builder productBuilder() {
-    return new Product.Builder().name("Default Product").price(0).quantity(0);
+    return new Product.Builder().name("Default Product").price(0.1).quantity(1);
   }
 
   @Test
@@ -26,6 +26,17 @@ class ProductTest {
     Product product2 = productBuilder().build();
 
     assertNotEquals(product1.getId(), product2.getId());
+  }
+
+  @Test
+  void shouldToBuilderAbleToBuildSameProduct() {
+    Product product1 = productBuilder().build();
+    Product product2 = product1.toBuilder().build();
+
+    assertEquals(product1.getId(), product2.getId());
+    assertEquals(product1.getName(), product2.getName());
+    assertEquals(product1.getPrice(), product2.getPrice());
+    assertEquals(product1.getQuantity(), product2.getQuantity());
   }
 
   @Test

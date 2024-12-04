@@ -28,6 +28,17 @@ class UserTest {
   }
 
   @Test
+  void shouldToBuilderAbleToBuildSameUser() {
+    User user1 = userBuilder().build();
+    User user2 = user1.toBuilder().build();
+
+    assertEquals(user1.getId(), user2.getId());
+    assertEquals(user1.getUsername(), user2.getUsername());
+    assertEquals(user1.getPassword(), user2.getPassword());
+    assertEquals(user1.getBalance(), user2.getBalance());
+  }
+
+  @Test
   void shouldRaiseExceptionWhenBuild_IfParamsViolateTheValidationConstraints() {
     assertThrowValidationException(userBuilder().username(null));
     assertThrowValidationException(userBuilder().username(""));
