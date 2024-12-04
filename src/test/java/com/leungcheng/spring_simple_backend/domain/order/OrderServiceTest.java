@@ -104,4 +104,27 @@ class OrderServiceTest {
             () -> orderService.createOrder(user.getId(), purchaseItems));
     assertEquals("Insufficient stock for product: " + product.getId(), exception.getMessage());
   }
+
+  @Test
+  void shouldReduceProductQuantityAndBuyerBalanceWhenOrderIsSuccessful() {
+    User buyer = userBuilder().balance(25).build();
+    userRepository.save(buyer);
+
+    Product product1 = productBuilder().quantity(10).price(5.2).build();
+    Product product2 = productBuilder().quantity(10).price(3.5).build();
+    productRepository.save(product1);
+    productRepository.save(product2);
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem(product1.getId(), 2);
+    purchaseItems.setPurchaseItem(product2.getId(), 3);
+
+    orderService.createOrder(buyer.getId(), purchaseItems);
+
+    assertEquals(8, productRepository.findById(product1.getId()).get().getQuantity());
+    assertEquals(7, productRepository.findById(product2.getId()).get().getQuantity());
+
+    assertEquals(
+        4.1, userRepository.findById(buyer.getId()).get().getBalance()); // 20 - (5.2 * 2 + 3.5 * 3)
+  }
 }
