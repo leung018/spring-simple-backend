@@ -251,7 +251,7 @@ class SpringSimpleBackendApplicationTests {
     int quantity;
 
     private static CreateProductParams sample() {
-      return new CreateProductParams("Product 1", "1.0", 50);
+      return new CreateProductParams("Product 1", "10", 50);
     }
 
     private CreateProductParams(String name, String price, int quantity) {
