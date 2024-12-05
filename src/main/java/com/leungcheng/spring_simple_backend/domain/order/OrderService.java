@@ -48,6 +48,18 @@ public class OrderService {
 
       product = product.toBuilder().quantity(product.getQuantity() - purchaseQuantity).build();
       productRepository.save(product);
+      User seller =
+          userRepository
+              .findById(product.getUserId())
+              .orElseThrow(() -> new RuntimeException("Seller does not exist"));
+      User updatedSeller =
+          seller.toBuilder()
+              .balance(
+                  seller
+                      .getBalance()
+                      .add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity))))
+              .build();
+      userRepository.save(updatedSeller);
 
       totalCost = totalCost.add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity)));
     }

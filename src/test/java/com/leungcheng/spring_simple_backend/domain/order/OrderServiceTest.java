@@ -8,6 +8,7 @@ import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,21 +24,28 @@ class OrderServiceTest {
   private @Autowired OrderRepository orderRepository;
   private OrderService orderService;
 
+  private Product.Builder productBuilder() {
+    return new Product.Builder()
+        .name("Default Product")
+        .price(new BigDecimal(20))
+        .userId(seedSeller.getId())
+        .quantity(10);
+  }
+
+  private User.Builder userBuilder() {
+    return new User.Builder().username("user01").password("password").balance(new BigDecimal(100));
+  }
+
+  private final User seedSeller = userBuilder().build();
+
   @BeforeEach
   void setUp() {
     orderRepository.deleteAll();
     userRepository.deleteAll();
     productRepository.deleteAll();
 
+    userRepository.save(seedSeller);
     orderService = new OrderService(userRepository, productRepository, orderRepository);
-  }
-
-  private static Product.Builder productBuilder() {
-    return new Product.Builder().name("Default Product").price(new BigDecimal(20)).quantity(10);
-  }
-
-  private static User.Builder userBuilder() {
-    return new User.Builder().username("user01").password("password").balance(new BigDecimal(100));
   }
 
   @Test
@@ -142,5 +150,28 @@ class OrderServiceTest {
     assertEquals(
         new BigDecimal("4.1"),
         userRepository.findById(buyer.getId()).get().getBalance()); // 20 - (5.2 * 2 + 3.5 * 3)
+  }
+
+  @Test
+  void shouldIncreaseSellersBalance() {
+    User buyer = userBuilder().balance(new BigDecimal(999)).build();
+    User seller1 = userBuilder().balance(new BigDecimal(5)).build();
+    User seller2 = userBuilder().balance(new BigDecimal(10)).build();
+    userRepository.saveAll(List.of(buyer, seller1, seller2));
+
+    Product product1 =
+        productBuilder().quantity(999).price(new BigDecimal(5)).userId(seller1.getId()).build();
+    Product product2 =
+        productBuilder().quantity(999).price(new BigDecimal(3)).userId(seller2.getId()).build();
+    productRepository.saveAll(List.of(product1, product2));
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem(product1.getId(), 2);
+    purchaseItems.setPurchaseItem(product2.getId(), 3);
+
+    orderService.createOrder(buyer.getId(), purchaseItems);
+
+    assertEquals(new BigDecimal(15), userRepository.findById(seller1.getId()).get().getBalance());
+    assertEquals(new BigDecimal(19), userRepository.findById(seller2.getId()).get().getBalance());
   }
 }
