@@ -11,7 +11,7 @@ public class Order {
   private String userId;
   private PurchaseItems purchaseItems;
 
-  private Order() {}
+  Order() {} // FIXME: Change to private
 
   public String getId() {
     return id;

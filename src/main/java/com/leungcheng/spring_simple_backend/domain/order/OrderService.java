@@ -45,13 +45,18 @@ public class OrderService {
         throw new IllegalArgumentException("Insufficient stock for product: " + productId);
       }
 
+      product = product.toBuilder().quantity(product.getQuantity() - purchaseQuantity).build();
+      productRepository.save(product);
+
       totalCost += product.getPrice() * purchaseQuantity;
     }
 
     if (user.getBalance() < totalCost) {
       throw new IllegalArgumentException("Insufficient balance");
     }
+    User updatedUser = user.toBuilder().balance(user.getBalance() - totalCost).build();
+    userRepository.save(updatedUser);
 
-    throw new UnsupportedOperationException("Not implemented");
+    return new Order();
   }
 }
