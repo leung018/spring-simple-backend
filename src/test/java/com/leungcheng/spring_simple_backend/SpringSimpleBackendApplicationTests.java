@@ -64,11 +64,12 @@ class SpringSimpleBackendApplicationTests {
     useNewUserAccessToken();
 
     CreateProductParams params = CreateProductParams.sample();
+    params.price = "19.2";
     MvcResult mvcResult =
         createProduct(params)
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.name").value(params.name))
-            .andExpect(jsonPath("$.price").value(params.price))
+            .andExpect(jsonPath("$.price").value("19.2"))
             .andExpect(jsonPath("$.quantity").value(params.quantity))
             .andReturn();
     String productId = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
@@ -76,7 +77,7 @@ class SpringSimpleBackendApplicationTests {
     getProduct(productId)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(params.name))
-        .andExpect(jsonPath("$.price").value(params.price))
+        .andExpect(jsonPath("$.price").value("19.2"))
         .andExpect(jsonPath("$.quantity").value(params.quantity));
   }
 
@@ -101,12 +102,16 @@ class SpringSimpleBackendApplicationTests {
     useNewUserAccessToken();
 
     CreateProductParams params = CreateProductParams.sample();
-    params.price = new BigDecimal(-1);
+    params.price = "-1";
 
     // Set up the expected exception that will be thrown when building this product
     ObjectValidationException expectedException = null;
     try {
-      new Product.Builder().name(params.name).price(params.price).quantity(params.quantity).build();
+      new Product.Builder()
+          .name(params.name)
+          .price(new BigDecimal(params.price))
+          .quantity(params.quantity)
+          .build();
     } catch (ObjectValidationException ex) {
       expectedException = ex;
     }
@@ -238,14 +243,14 @@ class SpringSimpleBackendApplicationTests {
 
   private static class CreateProductParams {
     String name;
-    BigDecimal price;
+    String price;
     int quantity;
 
     private static CreateProductParams sample() {
-      return new CreateProductParams("Product 1", new BigDecimal(1), 50);
+      return new CreateProductParams("Product 1", "1.0", 50);
     }
 
-    private CreateProductParams(String name, BigDecimal price, int quantity) {
+    private CreateProductParams(String name, String price, int quantity) {
       this.name = name;
       this.price = price;
       this.quantity = quantity;
