@@ -237,7 +237,11 @@ class SpringSimpleBackendApplicationTests {
 
     getAccountInfo()
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.balance").value(User.INITIAL_BALANCE))
+        .andExpect(
+            jsonPath("$.balance")
+                .value(
+                    "100.0")) // FIXME: not hardcoding it. Perhaps move INITIAL_BALANCE to sth that
+        // can be accessed by tests
         .andExpect(jsonPath("$.username").value(userCredentials.username));
   }
 
