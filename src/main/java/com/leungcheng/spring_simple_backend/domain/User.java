@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,12 +17,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-  public static final double INITIAL_BALANCE = 100;
+  public static final BigDecimal INITIAL_BALANCE = new BigDecimal(100);
 
   public static class Builder {
     private String username;
     private String password;
-    private double balance;
+    private BigDecimal balance;
     private String id = java.util.UUID.randomUUID().toString();
 
     private Builder id(String id) {
@@ -39,7 +40,7 @@ public class User implements UserDetails {
       return this;
     }
 
-    public Builder balance(double balance) {
+    public Builder balance(BigDecimal balance) {
       this.balance = balance;
       return this;
     }
@@ -74,7 +75,7 @@ public class User implements UserDetails {
   @NotBlank private String password;
 
   @Min(0)
-  private double balance;
+  private BigDecimal balance;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -95,7 +96,7 @@ public class User implements UserDetails {
     return username;
   }
 
-  public double getBalance() {
+  public BigDecimal getBalance() {
     return balance;
   }
 }

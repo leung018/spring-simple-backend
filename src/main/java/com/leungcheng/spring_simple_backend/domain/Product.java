@@ -7,13 +7,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "products")
 public class Product {
   public static class Builder {
     private String name;
-    private double price;
+    private BigDecimal price;
     private int quantity;
     private String userId;
     private String id = java.util.UUID.randomUUID().toString();
@@ -28,7 +29,7 @@ public class Product {
       return this;
     }
 
-    public Builder price(double price) {
+    public Builder price(BigDecimal price) {
       this.price = price;
       return this;
     }
@@ -71,7 +72,7 @@ public class Product {
   @NotBlank private String name;
 
   @Min(0)
-  private double price;
+  private BigDecimal price;
 
   @Min(0)
   private int quantity;
@@ -88,7 +89,7 @@ public class Product {
     return name;
   }
 
-  public double getPrice() {
+  public BigDecimal getPrice() {
     return price;
   }
 

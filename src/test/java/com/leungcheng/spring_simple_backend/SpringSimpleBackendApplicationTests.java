@@ -10,6 +10,7 @@ import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
 import com.leungcheng.spring_simple_backend.validation.ObjectValidator.ObjectValidationException;
+import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,7 +101,7 @@ class SpringSimpleBackendApplicationTests {
     useNewUserAccessToken();
 
     CreateProductParams params = CreateProductParams.sample();
-    params.price = -1;
+    params.price = new BigDecimal(-1);
 
     // Set up the expected exception that will be thrown when building this product
     ObjectValidationException expectedException = null;
@@ -237,14 +238,14 @@ class SpringSimpleBackendApplicationTests {
 
   private static class CreateProductParams {
     String name;
-    double price;
+    BigDecimal price;
     int quantity;
 
     private static CreateProductParams sample() {
-      return new CreateProductParams("Product 1", 1.0, 50);
+      return new CreateProductParams("Product 1", new BigDecimal(1), 50);
     }
 
-    private CreateProductParams(String name, double price, int quantity) {
+    private CreateProductParams(String name, BigDecimal price, int quantity) {
       this.name = name;
       this.price = price;
       this.quantity = quantity;

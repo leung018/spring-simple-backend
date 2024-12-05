@@ -3,20 +3,25 @@ package com.leungcheng.spring_simple_backend.domain;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.leungcheng.spring_simple_backend.validation.ObjectValidator;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class UserTest {
   private static User.Builder userBuilder() {
-    return new User.Builder().username("default_user").password("default_password").balance(1.0);
+    return new User.Builder()
+        .username("default_user")
+        .password("default_password")
+        .balance(new BigDecimal("1.0"));
   }
 
   @Test
   void shouldCreateUser() {
-    User user = userBuilder().username("user_1").password("password").balance(25).build();
+    User user =
+        userBuilder().username("user_1").password("password").balance(new BigDecimal(25)).build();
 
     assertEquals("user_1", user.getUsername());
     assertEquals("password", user.getPassword());
-    assertEquals(25, user.getBalance());
+    assertEquals(new BigDecimal(25), user.getBalance());
   }
 
   @Test

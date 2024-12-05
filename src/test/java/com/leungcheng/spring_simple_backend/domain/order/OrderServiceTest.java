@@ -7,6 +7,7 @@ import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +33,11 @@ class OrderServiceTest {
   }
 
   private static Product.Builder productBuilder() {
-    return new Product.Builder().name("Default Product").price(20).quantity(10);
+    return new Product.Builder().name("Default Product").price(new BigDecimal(20)).quantity(10);
   }
 
   private static User.Builder userBuilder() {
-    return new User.Builder().username("user01").password("password").balance(100);
+    return new User.Builder().username("user01").password("password").balance(new BigDecimal(100));
   }
 
   @Test
@@ -71,10 +72,10 @@ class OrderServiceTest {
 
   @Test
   void shouldRejectCreateOrderWithInsufficientBalance() {
-    User user = userBuilder().balance(9).build();
+    User user = userBuilder().balance(new BigDecimal(9)).build();
     userRepository.save(user);
 
-    Product product = productBuilder().price(5).quantity(999).build();
+    Product product = productBuilder().price(new BigDecimal(5)).quantity(999).build();
     productRepository.save(product);
 
     PurchaseItems purchaseItems = new PurchaseItems();
@@ -89,10 +90,10 @@ class OrderServiceTest {
 
   @Test
   void shouldRejectOrderWithInsufficientProductQuantity() {
-    User user = userBuilder().balance(999).build();
+    User user = userBuilder().balance(new BigDecimal(999)).build();
     userRepository.save(user);
 
-    Product product = productBuilder().quantity(1).price(1).build();
+    Product product = productBuilder().quantity(1).price(BigDecimal.ONE).build();
     productRepository.save(product);
 
     PurchaseItems purchaseItems = new PurchaseItems();
@@ -107,11 +108,11 @@ class OrderServiceTest {
 
   @Test
   void shouldReduceProductQuantityAndBuyerBalanceWhenOrderIsSuccessful() {
-    User buyer = userBuilder().balance(25).build();
+    User buyer = userBuilder().balance(new BigDecimal(25)).build();
     userRepository.save(buyer);
 
-    Product product1 = productBuilder().quantity(10).price(5.2).build();
-    Product product2 = productBuilder().quantity(10).price(3.5).build();
+    Product product1 = productBuilder().quantity(10).price(new BigDecimal("5.2")).build();
+    Product product2 = productBuilder().quantity(10).price(new BigDecimal("3.5")).build();
     productRepository.save(product1);
     productRepository.save(product2);
 
@@ -125,6 +126,7 @@ class OrderServiceTest {
     assertEquals(7, productRepository.findById(product2.getId()).get().getQuantity());
 
     assertEquals(
-        4.1, userRepository.findById(buyer.getId()).get().getBalance()); // 20 - (5.2 * 2 + 3.5 * 3)
+        new BigDecimal("4.1"),
+        userRepository.findById(buyer.getId()).get().getBalance()); // 20 - (5.2 * 2 + 3.5 * 3)
   }
 }

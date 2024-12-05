@@ -5,6 +5,7 @@ import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
+import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,7 @@ public class OrderService {
             .findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
 
-    double totalCost = 0;
+    BigDecimal totalCost = BigDecimal.ZERO;
     ImmutableMap<String, Integer> productIdToQuantity = purchaseItems.getProductIdToQuantity();
     for (String productId : productIdToQuantity.keySet()) {
       Product product =
@@ -48,13 +49,13 @@ public class OrderService {
       product = product.toBuilder().quantity(product.getQuantity() - purchaseQuantity).build();
       productRepository.save(product);
 
-      totalCost += product.getPrice() * purchaseQuantity;
+      totalCost = totalCost.add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity)));
     }
 
-    if (user.getBalance() < totalCost) {
+    if (user.getBalance().compareTo(totalCost) < 0) {
       throw new IllegalArgumentException("Insufficient balance");
     }
-    User updatedUser = user.toBuilder().balance(user.getBalance() - totalCost).build();
+    User updatedUser = user.toBuilder().balance(user.getBalance().subtract(totalCost)).build();
     userRepository.save(updatedUser);
 
     return new Order();

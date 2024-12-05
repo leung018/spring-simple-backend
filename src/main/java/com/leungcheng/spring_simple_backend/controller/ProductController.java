@@ -4,6 +4,7 @@ import com.leungcheng.spring_simple_backend.auth.UserAuthenticatedInfoToken;
 import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -33,5 +34,5 @@ public class ProductController {
     return repository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
   }
 
-  public record CreateProductRequest(String name, double price, int quantity) {}
+  public record CreateProductRequest(String name, BigDecimal price, int quantity) {}
 }

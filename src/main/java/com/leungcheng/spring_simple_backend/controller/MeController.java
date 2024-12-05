@@ -3,6 +3,7 @@ package com.leungcheng.spring_simple_backend.controller;
 import com.leungcheng.spring_simple_backend.auth.UserAuthenticatedInfoToken;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
+import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,5 +19,5 @@ public class MeController {
     return new UserAccountInfo(user.getUsername(), user.getBalance());
   }
 
-  public record UserAccountInfo(String username, double balance) {}
+  public record UserAccountInfo(String username, BigDecimal balance) {}
 }

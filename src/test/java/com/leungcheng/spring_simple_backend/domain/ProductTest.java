@@ -3,20 +3,22 @@ package com.leungcheng.spring_simple_backend.domain;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.leungcheng.spring_simple_backend.validation.ObjectValidator;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class ProductTest {
 
   private static Product.Builder productBuilder() {
-    return new Product.Builder().name("Default Product").price(0.1).quantity(1);
+    return new Product.Builder().name("Default Product").price(new BigDecimal("0.1")).quantity(1);
   }
 
   @Test
   void shouldCreateProduct() {
-    Product product = productBuilder().name("Product 1").price(1.0).quantity(50).build();
+    Product product =
+        productBuilder().name("Product 1").price(new BigDecimal("1.0")).quantity(50).build();
 
     assertEquals("Product 1", product.getName());
-    assertEquals(1.0, product.getPrice());
+    assertEquals(new BigDecimal("1.0"), product.getPrice());
     assertEquals(50, product.getQuantity());
   }
 
@@ -43,7 +45,7 @@ class ProductTest {
   void shouldRaiseExceptionWhenBuild_IfParamsViolateTheValidationConstraints() {
     assertThrowValidationException(productBuilder().quantity(-1));
 
-    assertThrowValidationException(productBuilder().price(-1));
+    assertThrowValidationException(productBuilder().price(new BigDecimal("-1")));
 
     assertThrowValidationException(productBuilder().name(""));
     assertThrowValidationException(productBuilder().name(null));
