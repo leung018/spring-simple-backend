@@ -72,7 +72,7 @@ class OrderServiceTest {
 
   @Test
   void shouldRejectCreateOrderWithInsufficientBalance() {
-    User user = userBuilder().balance(new BigDecimal(9)).build();
+    User user = userBuilder().balance(new BigDecimal(9.99999)).build();
     userRepository.save(user);
 
     Product product = productBuilder().price(new BigDecimal(5)).quantity(999).build();
@@ -104,6 +104,20 @@ class OrderServiceTest {
             IllegalArgumentException.class,
             () -> orderService.createOrder(user.getId(), purchaseItems));
     assertEquals("Insufficient stock for product: " + product.getId(), exception.getMessage());
+  }
+
+  @Test
+  void shouldNotThrowExceptionIfStockAndBalanceIsJustEnough() {
+    User user = userBuilder().balance(new BigDecimal(10)).build();
+    userRepository.save(user);
+
+    Product product = productBuilder().quantity(1).price(new BigDecimal(10)).build();
+    productRepository.save(product);
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem(product.getId(), 1);
+
+    orderService.createOrder(user.getId(), purchaseItems); // should not throw exception
   }
 
   @Test
