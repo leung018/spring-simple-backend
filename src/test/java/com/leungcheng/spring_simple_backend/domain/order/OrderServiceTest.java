@@ -1,7 +1,6 @@
 package com.leungcheng.spring_simple_backend.domain.order;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
@@ -196,6 +195,23 @@ class OrderServiceTest {
 
     Order savedOrder = orderRepository.findById(order.getId()).orElseThrow();
     assertOrderEquals(order, savedOrder);
+  }
+
+  @Test
+  void shouldEachCreatedOrderHasDifferentId() {
+    User buyer = userBuilder().balance(new BigDecimal(999)).build();
+    userRepository.save(buyer);
+
+    Product product = productBuilder().quantity(999).price(new BigDecimal(5)).build();
+    productRepository.save(product);
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem(product.getId(), 1);
+
+    Order order1 = orderService.createOrder(buyer.getId(), purchaseItems);
+    Order order2 = orderService.createOrder(buyer.getId(), purchaseItems);
+
+    assertNotEquals(order1.getId(), order2.getId());
   }
 
   private void assertOrderEquals(Order expected, Order actual) {
