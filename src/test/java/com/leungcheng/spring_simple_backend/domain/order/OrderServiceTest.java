@@ -80,7 +80,7 @@ class OrderServiceTest {
 
   @Test
   void shouldRejectCreateOrderWithInsufficientBalance() {
-    User user = userBuilder().balance(new BigDecimal(9.99999)).build();
+    User user = userBuilder().balance(new BigDecimal("9.99999")).build();
     userRepository.save(user);
 
     Product product = productBuilder().price(new BigDecimal(5)).quantity(999).build();
