@@ -6,6 +6,8 @@ import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
 import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,54 +29,75 @@ public class OrderService {
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public Order createOrder(String buyerUserId, PurchaseItems purchaseItems) {
-    User user =
-        userRepository
-            .findById(buyerUserId)
+    User buyer =
+        getUser(buyerUserId)
             .orElseThrow(() -> new IllegalArgumentException("Buyer does not exist"));
 
-    BigDecimal totalCost = BigDecimal.ZERO;
+    BigDecimal totalCost = processPurchaseItems(purchaseItems);
+
+    if (buyer.getBalance().compareTo(totalCost) < 0) {
+      throw new IllegalArgumentException("Insufficient balance");
+    }
+    saveNewBalance(buyer, buyer.getBalance().subtract(totalCost));
+
+    return addNewOrder(buyerUserId, purchaseItems);
+  }
+
+  private Optional<User> getUser(String userId) {
+    return userRepository.findById(userId);
+  }
+
+  private void saveNewBalance(User buyer, BigDecimal newBalance) {
+    User updatedBuyer = buyer.toBuilder().balance(newBalance).build();
+    userRepository.save(updatedBuyer);
+  }
+
+  private Order addNewOrder(String buyerUserId, PurchaseItems purchaseItems) {
+    Order order = new Order(buyerUserId, purchaseItems);
+    return orderRepository.save(order);
+  }
+
+  private BigDecimal processPurchaseItems(PurchaseItems purchaseItems) {
     ImmutableMap<String, Integer> productIdToQuantity = purchaseItems.getProductIdToQuantity();
     if (productIdToQuantity.isEmpty()) {
       throw new IllegalArgumentException("Purchase items cannot be empty");
     }
 
-    for (String productId : productIdToQuantity.keySet()) {
-      Product product =
-          productRepository
-              .findById(productId)
-              .orElseThrow(
-                  () -> new IllegalArgumentException("Product: " + productId + " does not exist"));
+    BigDecimal totalCost = BigDecimal.ZERO;
+    for (Map.Entry<String, Integer> entry : productIdToQuantity.entrySet()) {
+      String productId = entry.getKey();
+      int purchaseQuantity = entry.getValue();
+      Product product = getProduct(productId);
 
-      int purchaseQuantity = productIdToQuantity.get(productId);
-      if (purchaseQuantity > product.getQuantity()) {
-        throw new IllegalArgumentException("Insufficient stock for product: " + productId);
-      }
+      reduceProductStock(product, purchaseQuantity);
+      addProfitToSeller(product, purchaseQuantity);
 
-      product = product.toBuilder().quantity(product.getQuantity() - purchaseQuantity).build();
-      productRepository.save(product);
-      User seller =
-          userRepository
-              .findById(product.getUserId())
-              .orElseThrow(() -> new RuntimeException("Seller does not exist"));
-      User updatedSeller =
-          seller.toBuilder()
-              .balance(
-                  seller
-                      .getBalance()
-                      .add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity))))
-              .build();
-      userRepository.save(updatedSeller);
-
-      totalCost = totalCost.add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity)));
+      BigDecimal itemCost = product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity));
+      totalCost = totalCost.add(itemCost);
     }
+    return totalCost;
+  }
 
-    if (user.getBalance().compareTo(totalCost) < 0) {
-      throw new IllegalArgumentException("Insufficient balance");
+  private void reduceProductStock(Product product, int purchaseQuantity) {
+    if (purchaseQuantity > product.getQuantity()) {
+      throw new IllegalArgumentException("Insufficient stock for product: " + product.getId());
     }
-    User updatedUser = user.toBuilder().balance(user.getBalance().subtract(totalCost)).build();
-    userRepository.save(updatedUser);
+    int newQuantity = product.getQuantity() - purchaseQuantity;
+    Product updatedProduct = product.toBuilder().quantity(newQuantity).build();
+    productRepository.save(updatedProduct);
+  }
 
-    Order order = new Order(buyerUserId, purchaseItems);
-    return orderRepository.save(order);
+  private void addProfitToSeller(Product product, int purchaseQuantity) {
+    User seller = getUser(product.getUserId()).orElseThrow();
+    BigDecimal profit = product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity));
+    BigDecimal newBalance = seller.getBalance().add(profit);
+    saveNewBalance(seller, newBalance);
+  }
+
+  private Product getProduct(String productId) {
+    return productRepository
+        .findById(productId)
+        .orElseThrow(
+            () -> new IllegalArgumentException("Product: " + productId + " does not exist"));
   }
 }
