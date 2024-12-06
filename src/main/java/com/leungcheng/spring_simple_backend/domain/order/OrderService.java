@@ -26,11 +26,11 @@ public class OrderService {
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
-  public Order createOrder(String userId, PurchaseItems purchaseItems) {
+  public Order createOrder(String buyerUserId, PurchaseItems purchaseItems) {
     User user =
         userRepository
-            .findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+            .findById(buyerUserId)
+            .orElseThrow(() -> new IllegalArgumentException("Buyer does not exist"));
 
     BigDecimal totalCost = BigDecimal.ZERO;
     ImmutableMap<String, Integer> productIdToQuantity = purchaseItems.getProductIdToQuantity();

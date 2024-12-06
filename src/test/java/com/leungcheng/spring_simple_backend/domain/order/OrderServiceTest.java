@@ -49,7 +49,7 @@ class OrderServiceTest {
   }
 
   @Test
-  void shouldRejectCreateOrderWithNonExistingUser() {
+  void shouldRejectCreateOrderWithNonExistingBuyer() {
     Product product = productBuilder().build();
     productRepository.save(product);
 
@@ -59,14 +59,14 @@ class OrderServiceTest {
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> orderService.createOrder("non_existing_user_id", purchaseItems));
-    assertEquals("User does not exist", exception.getMessage());
+            () -> orderService.createOrder("non_existing_buyer_id", purchaseItems));
+    assertEquals("Buyer does not exist", exception.getMessage());
   }
 
   @Test
   void shouldRejectCreateOrderWithNonExistingProduct() {
-    User user = userBuilder().build();
-    userRepository.save(user);
+    User buyer = userBuilder().build();
+    userRepository.save(buyer);
 
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem("non_existing_product_id", 1);
@@ -74,14 +74,14 @@ class OrderServiceTest {
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> orderService.createOrder(user.getId(), purchaseItems));
+            () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Product: non_existing_product_id does not exist", exception.getMessage());
   }
 
   @Test
   void shouldRejectCreateOrderWithInsufficientBalance() {
-    User user = userBuilder().balance(new BigDecimal("9.99999")).build();
-    userRepository.save(user);
+    User buyer = userBuilder().balance(new BigDecimal("9.99999")).build();
+    userRepository.save(buyer);
 
     Product product = productBuilder().price(new BigDecimal(5)).quantity(999).build();
     productRepository.save(product);
@@ -92,14 +92,14 @@ class OrderServiceTest {
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> orderService.createOrder(user.getId(), purchaseItems));
+            () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Insufficient balance", exception.getMessage());
   }
 
   @Test
   void shouldRejectOrderWithInsufficientProductQuantity() {
-    User user = userBuilder().balance(new BigDecimal(999)).build();
-    userRepository.save(user);
+    User buyer = userBuilder().balance(new BigDecimal(999)).build();
+    userRepository.save(buyer);
 
     Product product = productBuilder().quantity(1).price(BigDecimal.ONE).build();
     productRepository.save(product);
@@ -110,14 +110,14 @@ class OrderServiceTest {
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> orderService.createOrder(user.getId(), purchaseItems));
+            () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Insufficient stock for product: " + product.getId(), exception.getMessage());
   }
 
   @Test
-  void shouldNotThrowExceptionIfStockAndBalanceIsJustEnough() {
-    User user = userBuilder().balance(new BigDecimal(10)).build();
-    userRepository.save(user);
+  void shouldNotThrowExceptionIfStockAndBuyerBalanceIsJustEnough() {
+    User buyer = userBuilder().balance(new BigDecimal(10)).build();
+    userRepository.save(buyer);
 
     Product product = productBuilder().quantity(1).price(new BigDecimal(10)).build();
     productRepository.save(product);
@@ -125,7 +125,7 @@ class OrderServiceTest {
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem(product.getId(), 1);
 
-    orderService.createOrder(user.getId(), purchaseItems); // should not throw exception
+    orderService.createOrder(buyer.getId(), purchaseItems); // should not throw exception
   }
 
   @Test
