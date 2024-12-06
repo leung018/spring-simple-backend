@@ -27,12 +27,10 @@ public class OrderService {
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public Order createOrder(String buyerUserId, PurchaseItems purchaseItems) {
-    User user =
-        userRepository
-            .findById(buyerUserId)
-            .orElseThrow(() -> new IllegalArgumentException("Buyer does not exist"));
+    User buyer = getBuyer(buyerUserId);
 
     BigDecimal totalCost = BigDecimal.ZERO;
+
     ImmutableMap<String, Integer> productIdToQuantity = purchaseItems.getProductIdToQuantity();
     if (productIdToQuantity.isEmpty()) {
       throw new IllegalArgumentException("Purchase items cannot be empty");
@@ -56,24 +54,35 @@ public class OrderService {
           userRepository
               .findById(product.getUserId())
               .orElseThrow(() -> new RuntimeException("Seller does not exist"));
-      User updatedSeller =
-          seller.toBuilder()
-              .balance(
-                  seller
-                      .getBalance()
-                      .add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity))))
-              .build();
-      userRepository.save(updatedSeller);
+      saveNewBalance(
+          seller,
+          seller
+              .getBalance()
+              .add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity))));
 
       totalCost = totalCost.add(product.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity)));
     }
 
-    if (user.getBalance().compareTo(totalCost) < 0) {
+    if (buyer.getBalance().compareTo(totalCost) < 0) {
       throw new IllegalArgumentException("Insufficient balance");
     }
-    User updatedUser = user.toBuilder().balance(user.getBalance().subtract(totalCost)).build();
-    userRepository.save(updatedUser);
+    saveNewBalance(buyer, buyer.getBalance().subtract(totalCost));
 
+    return addNewOrder(buyerUserId, purchaseItems);
+  }
+
+  private User getBuyer(String buyerUserId) {
+    return userRepository
+        .findById(buyerUserId)
+        .orElseThrow(() -> new IllegalArgumentException("Buyer does not exist"));
+  }
+
+  private void saveNewBalance(User buyer, BigDecimal newBalance) {
+    User updatedBuyer = buyer.toBuilder().balance(newBalance).build();
+    userRepository.save(updatedBuyer);
+  }
+
+  private Order addNewOrder(String buyerUserId, PurchaseItems purchaseItems) {
     Order order = new Order(buyerUserId, purchaseItems);
     return orderRepository.save(order);
   }
