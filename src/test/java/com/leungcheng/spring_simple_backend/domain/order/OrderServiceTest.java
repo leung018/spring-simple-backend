@@ -174,4 +174,35 @@ class OrderServiceTest {
     assertEquals(new BigDecimal(15), userRepository.findById(seller1.getId()).get().getBalance());
     assertEquals(new BigDecimal(19), userRepository.findById(seller2.getId()).get().getBalance());
   }
+
+  @Test
+  void shouldCreateOrder() {
+    User buyer = userBuilder().balance(new BigDecimal(999)).build();
+    userRepository.save(buyer);
+
+    Product product1 = productBuilder().quantity(999).price(new BigDecimal(5)).build();
+    Product product2 = productBuilder().quantity(999).price(new BigDecimal(3)).build();
+    productRepository.saveAll(List.of(product1, product2));
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+    purchaseItems.setPurchaseItem(product1.getId(), 2);
+    purchaseItems.setPurchaseItem(product2.getId(), 5);
+
+    Order order = orderService.createOrder(buyer.getId(), purchaseItems);
+
+    assertEquals(buyer.getId(), order.getBuyerUserId());
+    assertEquals(
+        purchaseItems.getProductIdToQuantity(), order.getPurchaseItems().getProductIdToQuantity());
+
+    Order savedOrder = orderRepository.findById(order.getId()).orElseThrow();
+    assertOrderEquals(order, savedOrder);
+  }
+
+  private void assertOrderEquals(Order expected, Order actual) {
+    assertEquals(expected.getId(), actual.getId());
+    assertEquals(expected.getBuyerUserId(), actual.getBuyerUserId());
+    assertEquals(
+        expected.getPurchaseItems().getProductIdToQuantity(),
+        actual.getPurchaseItems().getProductIdToQuantity());
+  }
 }

@@ -11,7 +11,12 @@ public class Order {
   private String buyerUserId;
   private PurchaseItems purchaseItems;
 
-  Order() {} // FIXME: Change to private
+  private Order() {}
+
+  Order (String buyerUserId, PurchaseItems purchaseItems) {
+    this.buyerUserId = buyerUserId;
+    this.purchaseItems = purchaseItems;
+  }
 
   public String getId() {
     return id;

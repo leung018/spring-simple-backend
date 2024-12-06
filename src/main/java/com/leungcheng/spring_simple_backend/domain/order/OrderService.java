@@ -70,6 +70,7 @@ public class OrderService {
     User updatedUser = user.toBuilder().balance(user.getBalance().subtract(totalCost)).build();
     userRepository.save(updatedUser);
 
-    return new Order();
+    Order order = new Order(buyerUserId, purchaseItems);
+    return orderRepository.save(order);
   }
 }
