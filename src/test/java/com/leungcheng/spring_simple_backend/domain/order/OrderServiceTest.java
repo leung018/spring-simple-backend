@@ -157,12 +157,15 @@ class OrderServiceTest {
 
     orderService.createOrder(buyer.getId(), purchaseItems);
 
-    assertEquals(8, productRepository.findById(product1.getId()).get().getQuantity());
-    assertEquals(7, productRepository.findById(product2.getId()).get().getQuantity());
+    assertEquals(8, productRepository.findById(product1.getId()).orElseThrow().getQuantity());
+    assertEquals(7, productRepository.findById(product2.getId()).orElseThrow().getQuantity());
 
     assertEquals(
         new BigDecimal("4.1"),
-        userRepository.findById(buyer.getId()).get().getBalance()); // 20 - (5.2 * 2 + 3.5 * 3)
+        userRepository
+            .findById(buyer.getId())
+            .orElseThrow()
+            .getBalance()); // 20 - (5.2 * 2 + 3.5 * 3)
   }
 
   @Test
@@ -184,8 +187,10 @@ class OrderServiceTest {
 
     orderService.createOrder(buyer.getId(), purchaseItems);
 
-    assertEquals(new BigDecimal(15), userRepository.findById(seller1.getId()).get().getBalance());
-    assertEquals(new BigDecimal(19), userRepository.findById(seller2.getId()).get().getBalance());
+    assertEquals(
+        new BigDecimal(15), userRepository.findById(seller1.getId()).orElseThrow().getBalance());
+    assertEquals(
+        new BigDecimal(19), userRepository.findById(seller2.getId()).orElseThrow().getBalance());
   }
 
   @Test
