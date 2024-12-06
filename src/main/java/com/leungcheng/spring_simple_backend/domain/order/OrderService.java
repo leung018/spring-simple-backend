@@ -34,6 +34,10 @@ public class OrderService {
 
     BigDecimal totalCost = BigDecimal.ZERO;
     ImmutableMap<String, Integer> productIdToQuantity = purchaseItems.getProductIdToQuantity();
+    if (productIdToQuantity.isEmpty()) {
+      throw new IllegalArgumentException("Purchase items cannot be empty");
+    }
+
     for (String productId : productIdToQuantity.keySet()) {
       Product product =
           productRepository

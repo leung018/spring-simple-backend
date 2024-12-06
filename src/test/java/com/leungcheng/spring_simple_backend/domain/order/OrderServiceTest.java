@@ -63,6 +63,20 @@ class OrderServiceTest {
   }
 
   @Test
+  void shouldRejectCreateOrderWithEmptyPurchaseItems() {
+    User buyer = userBuilder().build();
+    userRepository.save(buyer);
+
+    PurchaseItems purchaseItems = new PurchaseItems();
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> orderService.createOrder(buyer.getId(), purchaseItems));
+    assertEquals("Purchase items cannot be empty", exception.getMessage());
+  }
+
+  @Test
   void shouldRejectCreateOrderWithNonExistingProduct() {
     User buyer = userBuilder().build();
     userRepository.save(buyer);
