@@ -75,6 +75,7 @@ public class User implements UserDetails {
   @NotBlank private String password;
 
   @Min(0)
+  @Column(precision = 19, scale = 10)
   private BigDecimal balance;
 
   @Override

@@ -8,35 +8,32 @@ import com.leungcheng.spring_simple_backend.domain.UserRepository;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
-  private final UserRepository userRepository;
-  private final ProductRepository productRepository;
-  private final OrderRepository orderRepository;
+  private @Autowired UserRepository userRepository;
+  private @Autowired ProductRepository productRepository;
+  private @Autowired OrderRepository orderRepository;
 
-  public OrderService(
-      UserRepository userRepository,
-      ProductRepository productRepository,
-      OrderRepository orderRepository) {
-    this.userRepository = userRepository;
-    this.productRepository = productRepository;
-    this.orderRepository = orderRepository;
+  public static class CreateOrderException extends IllegalArgumentException {
+    public CreateOrderException(String message) {
+      super(message);
+    }
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public Order createOrder(String buyerUserId, PurchaseItems purchaseItems) {
     User buyer =
-        getUser(buyerUserId)
-            .orElseThrow(() -> new IllegalArgumentException("Buyer does not exist"));
+        getUser(buyerUserId).orElseThrow(() -> new CreateOrderException("Buyer does not exist"));
 
     BigDecimal totalCost = processPurchaseItems(purchaseItems);
 
     if (buyer.getBalance().compareTo(totalCost) < 0) {
-      throw new IllegalArgumentException("Insufficient balance");
+      throw new CreateOrderException("Insufficient balance");
     }
     saveNewBalance(buyer, buyer.getBalance().subtract(totalCost));
 
@@ -60,7 +57,7 @@ public class OrderService {
   private BigDecimal processPurchaseItems(PurchaseItems purchaseItems) {
     ImmutableMap<String, Integer> productIdToQuantity = purchaseItems.getProductIdToQuantity();
     if (productIdToQuantity.isEmpty()) {
-      throw new IllegalArgumentException("Purchase items cannot be empty");
+      throw new CreateOrderException("Purchase items cannot be empty");
     }
 
     BigDecimal totalCost = BigDecimal.ZERO;
@@ -80,7 +77,7 @@ public class OrderService {
 
   private void reduceProductStock(Product product, int purchaseQuantity) {
     if (purchaseQuantity > product.getQuantity()) {
-      throw new IllegalArgumentException("Insufficient stock for product: " + product.getId());
+      throw new CreateOrderException("Insufficient stock for product: " + product.getId());
     }
     int newQuantity = product.getQuantity() - purchaseQuantity;
     Product updatedProduct = product.toBuilder().quantity(newQuantity).build();
@@ -97,7 +94,6 @@ public class OrderService {
   private Product getProduct(String productId) {
     return productRepository
         .findById(productId)
-        .orElseThrow(
-            () -> new IllegalArgumentException("Product: " + productId + " does not exist"));
+        .orElseThrow(() -> new CreateOrderException("Product: " + productId + " does not exist"));
   }
 }

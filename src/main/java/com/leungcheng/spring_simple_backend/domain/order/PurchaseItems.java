@@ -6,7 +6,7 @@ import java.util.Map;
 
 @Embeddable
 public class PurchaseItems {
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(
       name = "purchase_items",
       joinColumns = {@JoinColumn(name = "order_id", referencedColumnName = "id")})

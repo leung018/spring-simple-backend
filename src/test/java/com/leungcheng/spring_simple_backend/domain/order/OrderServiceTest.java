@@ -6,22 +6,21 @@ import com.leungcheng.spring_simple_backend.domain.Product;
 import com.leungcheng.spring_simple_backend.domain.ProductRepository;
 import com.leungcheng.spring_simple_backend.domain.User;
 import com.leungcheng.spring_simple_backend.domain.UserRepository;
+import com.leungcheng.spring_simple_backend.domain.order.OrderService.CreateOrderException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@ExtendWith(SpringExtension.class)
-@DataJpaTest
+@SpringBootTest
 class OrderServiceTest {
   private @Autowired UserRepository userRepository;
   private @Autowired ProductRepository productRepository;
   private @Autowired OrderRepository orderRepository;
-  private OrderService orderService;
+  private @Autowired OrderService orderService;
 
   private Product.Builder productBuilder() {
     return new Product.Builder()
@@ -32,7 +31,10 @@ class OrderServiceTest {
   }
 
   private User.Builder userBuilder() {
-    return new User.Builder().username("user01").password("password").balance(new BigDecimal(100));
+    return new User.Builder()
+        .username("user_" + UUID.randomUUID())
+        .password("password")
+        .balance(new BigDecimal(100));
   }
 
   private final User seedSeller = userBuilder().build();
@@ -44,7 +46,6 @@ class OrderServiceTest {
     productRepository.deleteAll();
 
     userRepository.save(seedSeller);
-    orderService = new OrderService(userRepository, productRepository, orderRepository);
   }
 
   @Test
@@ -55,9 +56,9 @@ class OrderServiceTest {
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem(product.getId(), 1);
 
-    IllegalArgumentException exception =
+    CreateOrderException exception =
         assertThrows(
-            IllegalArgumentException.class,
+            CreateOrderException.class,
             () -> orderService.createOrder("non_existing_buyer_id", purchaseItems));
     assertEquals("Buyer does not exist", exception.getMessage());
   }
@@ -69,9 +70,9 @@ class OrderServiceTest {
 
     PurchaseItems purchaseItems = new PurchaseItems();
 
-    IllegalArgumentException exception =
+    CreateOrderException exception =
         assertThrows(
-            IllegalArgumentException.class,
+            CreateOrderException.class,
             () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Purchase items cannot be empty", exception.getMessage());
   }
@@ -84,9 +85,9 @@ class OrderServiceTest {
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem("non_existing_product_id", 1);
 
-    IllegalArgumentException exception =
+    CreateOrderException exception =
         assertThrows(
-            IllegalArgumentException.class,
+            CreateOrderException.class,
             () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Product: non_existing_product_id does not exist", exception.getMessage());
   }
@@ -102,9 +103,9 @@ class OrderServiceTest {
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem(product.getId(), 2);
 
-    IllegalArgumentException exception =
+    CreateOrderException exception =
         assertThrows(
-            IllegalArgumentException.class,
+            CreateOrderException.class,
             () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Insufficient balance", exception.getMessage());
 
@@ -123,14 +124,14 @@ class OrderServiceTest {
     PurchaseItems purchaseItems = new PurchaseItems();
     purchaseItems.setPurchaseItem(product.getId(), 2);
 
-    IllegalArgumentException exception =
+    CreateOrderException exception =
         assertThrows(
-            IllegalArgumentException.class,
+            CreateOrderException.class,
             () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Insufficient stock for product: " + product.getId(), exception.getMessage());
 
     // buyer balance should not be reduced
-    assertEquals(
+    assertBigDecimalEquals(
         new BigDecimal(999), userRepository.findById(buyer.getId()).orElseThrow().getBalance());
   }
 
@@ -167,7 +168,7 @@ class OrderServiceTest {
     assertEquals(8, productRepository.findById(product1.getId()).orElseThrow().getQuantity());
     assertEquals(7, productRepository.findById(product2.getId()).orElseThrow().getQuantity());
 
-    assertEquals(
+    assertBigDecimalEquals(
         new BigDecimal("4.1"),
         userRepository
             .findById(buyer.getId())
@@ -194,9 +195,9 @@ class OrderServiceTest {
 
     orderService.createOrder(buyer.getId(), purchaseItems);
 
-    assertEquals(
+    assertBigDecimalEquals(
         new BigDecimal(15), userRepository.findById(seller1.getId()).orElseThrow().getBalance());
-    assertEquals(
+    assertBigDecimalEquals(
         new BigDecimal(19), userRepository.findById(seller2.getId()).orElseThrow().getBalance());
   }
 
@@ -246,5 +247,9 @@ class OrderServiceTest {
     assertEquals(
         expected.getPurchaseItems().getProductIdToQuantity(),
         actual.getPurchaseItems().getProductIdToQuantity());
+  }
+
+  private void assertBigDecimalEquals(BigDecimal expected, BigDecimal actual) {
+    assertEquals(0, expected.compareTo(actual));
   }
 }
