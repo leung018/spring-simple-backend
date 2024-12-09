@@ -107,6 +107,9 @@ class OrderServiceTest {
             IllegalArgumentException.class,
             () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Insufficient balance", exception.getMessage());
+
+    // product quantity should not be reduced
+    assertEquals(999, productRepository.findById(product.getId()).orElseThrow().getQuantity());
   }
 
   @Test
@@ -125,6 +128,10 @@ class OrderServiceTest {
             IllegalArgumentException.class,
             () -> orderService.createOrder(buyer.getId(), purchaseItems));
     assertEquals("Insufficient stock for product: " + product.getId(), exception.getMessage());
+
+    // buyer balance should not be reduced
+    assertEquals(
+        new BigDecimal(999), userRepository.findById(buyer.getId()).orElseThrow().getBalance());
   }
 
   @Test
